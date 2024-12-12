@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup
 from collections import defaultdict
 import time
 
+
+
 # Constants
 WIKIPEDIA_BASE_URL = "https://en.wikipedia.org"
 WIKIPEDIA_PREFIX = "/wiki/"
@@ -202,7 +204,7 @@ async def crawl_with_config(root_url, max_depth, max_concurrent_requests, num_wo
     return graph, end_time - start_time
 
 async def benchmark():
-    root_wikipedia_url = "https://en.wikipedia.org/wiki/Python_(programming_language)"
+    root_wikipedia_url = "https://en.wikipedia.org/wiki/Charlottesville,_Virginia"
     max_depth = 2  # Reduced depth for testing
     
     configurations = [
