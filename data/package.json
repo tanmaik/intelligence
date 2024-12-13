@@ -1,0 +1,19 @@
+{
+  "name": "wikidata",
+  "version": "1.0.0",
+  "description": "data ingestion",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@simpletext/client": "^1.0.8",
+    "eventsource": "^3.0.2",
+    "socket.io-client": "^4.8.1"
+  }
+}
