@@ -5,8 +5,8 @@ on:
     branches: [main]
 
 env:
-  REGISTRY: "registry.digitalocean.com"
-  IMAGE_NAME: "tanmai"
+  REGISTRY: "registry.digitalocean.com/tanmai"
+  IMAGE_NAME: "wiki-listener"
 
 jobs:
   build_and_deploy:
