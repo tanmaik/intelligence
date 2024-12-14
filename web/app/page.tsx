@@ -30,114 +30,129 @@ export default function Home() {
     );
   };
 
-  // Update leaderboard whenever sortType changes
-  useEffect(() => {
-    let sortedArticles = Array.from(articleStats.entries()).map(
+  // Move sorting logic to a separate function to avoid duplication
+  const getSortedArticles = (
+    articles: Map<string, ArticleStats>,
+    type: SortType
+  ) => {
+    const sortedArticles = Array.from(articles.entries()).map(
       ([title, stats]) => {
         stats.score = calculateScore(stats);
         return [title, stats] as [string, ArticleStats];
       }
     );
 
-    switch (sortType) {
+    switch (type) {
       case "bytes":
-        sortedArticles = sortedArticles.sort(
-          (a, b) => {
-            const bytesDiff = Math.abs(b[1].byteChanges) - Math.abs(a[1].byteChanges);
-            return bytesDiff !== 0 ? bytesDiff : b[1].score - a[1].score;
-          }
-        );
-        break;
+        return sortedArticles.sort((a, b) => {
+          const bytesDiff =
+            Math.abs(b[1].byteChanges) - Math.abs(a[1].byteChanges);
+          return bytesDiff !== 0 ? bytesDiff : b[1].score - a[1].score;
+        });
       case "score":
-        sortedArticles = sortedArticles.sort((a, b) => b[1].score - a[1].score);
-        break;
+        return sortedArticles.sort((a, b) => b[1].score - a[1].score);
       case "edits":
-        sortedArticles = sortedArticles.sort(
-          (a, b) => {
-            const editsDiff = b[1].recentEdits.length - a[1].recentEdits.length;
-            return editsDiff !== 0 ? editsDiff : b[1].score - a[1].score;
-          }
-        );
-        break;
+        return sortedArticles.sort((a, b) => {
+          const editsDiff = b[1].recentEdits.length - a[1].recentEdits.length;
+          return editsDiff !== 0 ? editsDiff : b[1].score - a[1].score;
+        });
+      default:
+        return sortedArticles;
     }
+  };
 
-    setLeaderboard(sortedArticles.slice(0, MAX_LEADERBOARD_SIZE));
+  // Update leaderboard whenever sortType changes
+  useEffect(() => {
+    setLeaderboard(
+      getSortedArticles(articleStats, sortType).slice(0, MAX_LEADERBOARD_SIZE)
+    );
   }, [sortType]);
 
   useEffect(() => {
-    const es = new EventSource(
-      "https://stream.wikimedia.org/v2/stream/recentchange"
-    );
+    let es: EventSource | null = null;
+    let isActive = true; // Flag to prevent updates after unmount
 
-    es.onopen = () => {
-      console.log("Connected to the EventStreams feed.");
+    const updateLeaderboard = () => {
+      if (!isActive) return;
+      setLeaderboard(
+        getSortedArticles(articleStats, sortType).slice(0, MAX_LEADERBOARD_SIZE)
+      );
     };
 
-    es.onerror = (err) => {
-      console.error("Error occurred:", err);
-    };
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (!data || typeof data !== "object") return;
+        if (data.meta?.domain === "canary") return;
 
-    es.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.meta?.domain === "canary") return;
+        if (data.server_name === "en.wikipedia.org" && data.type === "edit") {
+          if (!data.title || data.title.includes(":")) return;
 
-      if (data.server_name === "en.wikipedia.org" && data.type === "edit") {
-        if (data.title.includes(":")) return;
+          const now = Date.now();
+          const article = articleStats.get(data.title) || {
+            count: 0,
+            recentEdits: [],
+            byteChanges: 0,
+            score: 0,
+          };
 
-        const now = Date.now();
-        const article = articleStats.get(data.title) || {
-          count: 0,
-          recentEdits: [],
-          byteChanges: 0,
-          score: 0,
-        };
+          // Add current edit timestamp and update stats
+          article.recentEdits.push(now);
+          article.count += 1;
+          article.byteChanges +=
+            (data.length?.new ?? 0) - (data.length?.old ?? 0);
 
-        // Add current edit timestamp and update stats
-        article.recentEdits.push(now);
-        article.count += 1;
-        article.byteChanges +=
-          (data.length?.new || 0) - (data.length?.old || 0);
-
-        articleStats.set(data.title, article);
-        
-        // Trigger a re-sort by updating the leaderboard
-        let sortedArticles = Array.from(articleStats.entries()).map(
-          ([title, stats]) => {
-            stats.score = calculateScore(stats);
-            return [title, stats] as [string, ArticleStats];
-          }
-        );
-
-        switch (sortType) {
-          case "bytes":
-            sortedArticles = sortedArticles.sort(
-              (a, b) => {
-                const bytesDiff = Math.abs(b[1].byteChanges) - Math.abs(a[1].byteChanges);
-                return bytesDiff !== 0 ? bytesDiff : b[1].score - a[1].score;
-              }
-            );
-            break;
-          case "score":
-            sortedArticles = sortedArticles.sort((a, b) => b[1].score - a[1].score);
-            break;
-          case "edits":
-            sortedArticles = sortedArticles.sort(
-              (a, b) => {
-                const editsDiff = b[1].recentEdits.length - a[1].recentEdits.length;
-                return editsDiff !== 0 ? editsDiff : b[1].score - a[1].score;
-              }
-            );
-            break;
+          articleStats.set(data.title, article);
+          updateLeaderboard();
         }
-
-        setLeaderboard(sortedArticles.slice(0, MAX_LEADERBOARD_SIZE));
+      } catch (err) {
+        console.error(
+          "Error processing message:",
+          err instanceof Error ? err.message : err
+        );
       }
     };
 
-    return () => {
-      es.close();
+    const connectToEventSource = () => {
+      try {
+        es = new EventSource(
+          "https://stream.wikimedia.org/v2/stream/recentchange"
+        );
+
+        es.onopen = () => console.log("Connected to the EventStreams feed.");
+        es.onmessage = handleMessage;
+
+        es.onerror = (err) => {
+          console.error("EventSource error:", err);
+          if (es && es.readyState === EventSource.CLOSED) {
+            console.log("Connection closed, attempting to reconnect...");
+            es.close();
+            if (isActive) {
+              setTimeout(connectToEventSource, 5000);
+            }
+          }
+        };
+      } catch (err) {
+        console.error(
+          "Error creating EventSource:",
+          err instanceof Error ? err.message : err
+        );
+        if (isActive) {
+          setTimeout(connectToEventSource, 5000);
+        }
+      }
     };
-  }, [sortType]); // Add sortType as a dependency here too
+
+    connectToEventSource();
+
+    return () => {
+      isActive = false;
+      if (es) {
+        console.log("Closing EventSource connection");
+        es.close();
+      }
+    };
+  }, [sortType]);
 
   return (
     <div className="flex flex-col items-center py-10">
@@ -168,11 +183,21 @@ export default function Home() {
           {leaderboard.map(([title, stats], index) => (
             <div key={title} className="flex justify-between">
               <span className="">
-                {index + 1}. {title}
+                {index + 1}.{" "}
+                <a
+                  href={`https://en.wikipedia.org/wiki/${encodeURIComponent(
+                    title
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  {title}
+                </a>
               </span>
               <span>
-                ({stats.recentEdits.length} | {stats.byteChanges > 0 ? "+" : ""}
-                {stats.byteChanges} | {stats.score.toFixed(2)})
+                {stats.recentEdits.length} | {stats.byteChanges > 0 ? "+" : ""}
+                {stats.byteChanges} | {stats.score.toFixed(2)}
               </span>
             </div>
           ))}
