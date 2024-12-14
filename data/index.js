@@ -2,9 +2,19 @@ import { EventSource } from "eventsource";
 
 const url = "https://stream.wikimedia.org/v2/stream/recentchange";
 const es = new EventSource(url);
+import { simpletext } from "./lib/simpletext.js";
 
 // Track edits per article with timestamps
 const articleEdits = new Map(); // {title: {count: number, recentEdits: timestamp[]}}
+
+const sendMessage = async (params) => {
+  try {
+    const response = await simpletext.sendSMS(params);
+    console.log(response);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 // Configuration for spike detection
 const WINDOW_MINUTES = 60;
@@ -45,6 +55,10 @@ es.onmessage = (event) => {
       console.log(
         `🚨 SPIKE ALERT: ${data.title} has ${article.recentEdits.length} edits in the last ${WINDOW_MINUTES} minutes!`
       );
+      sendMessage({
+        to: "+17032971353",
+        message: `🚨 Wikipedia Spike Alert: "${data.title}" has ${article.recentEdits.length} edits in the last ${WINDOW_MINUTES} minutes!`,
+      });
     }
 
     articleEdits.set(data.title, article);
