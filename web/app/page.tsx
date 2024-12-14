@@ -10,15 +10,17 @@ interface ArticleStats {
 
 const articleStats = new Map<string, ArticleStats>();
 
-const WINDOW_MINUTES = 60;
 const MAX_LEADERBOARD_SIZE = 10;
 
 // Scoring weights
 const EDIT_COUNT_WEIGHT = 0.6; // 60% weight to edit frequency
 const BYTE_CHANGE_WEIGHT = 0.4; // 40% weight to cumulative byte changes
 
+type SortType = "bytes" | "score" | "edits";
+
 export default function Home() {
   const [leaderboard, setLeaderboard] = useState<[string, ArticleStats][]>([]);
+  const [sortType, setSortType] = useState<SortType>("score");
 
   const calculateScore = (stats: ArticleStats) => {
     const normalizedEdits = stats.recentEdits.length;
@@ -28,17 +30,39 @@ export default function Home() {
     );
   };
 
-  const updateLeaderboard = () => {
-    const sortedArticles = Array.from(articleStats.entries())
-      .map(([title, stats]) => {
+  // Update leaderboard whenever sortType changes
+  useEffect(() => {
+    let sortedArticles = Array.from(articleStats.entries()).map(
+      ([title, stats]) => {
         stats.score = calculateScore(stats);
         return [title, stats] as [string, ArticleStats];
-      })
-      .sort((a, b) => b[1].score - a[1].score)
-      .slice(0, MAX_LEADERBOARD_SIZE);
+      }
+    );
 
-    setLeaderboard(sortedArticles);
-  };
+    switch (sortType) {
+      case "bytes":
+        sortedArticles = sortedArticles.sort(
+          (a, b) => {
+            const bytesDiff = Math.abs(b[1].byteChanges) - Math.abs(a[1].byteChanges);
+            return bytesDiff !== 0 ? bytesDiff : b[1].score - a[1].score;
+          }
+        );
+        break;
+      case "score":
+        sortedArticles = sortedArticles.sort((a, b) => b[1].score - a[1].score);
+        break;
+      case "edits":
+        sortedArticles = sortedArticles.sort(
+          (a, b) => {
+            const editsDiff = b[1].recentEdits.length - a[1].recentEdits.length;
+            return editsDiff !== 0 ? editsDiff : b[1].score - a[1].score;
+          }
+        );
+        break;
+    }
+
+    setLeaderboard(sortedArticles.slice(0, MAX_LEADERBOARD_SIZE));
+  }, [sortType]);
 
   useEffect(() => {
     const es = new EventSource(
@@ -74,46 +98,84 @@ export default function Home() {
         article.byteChanges +=
           (data.length?.new || 0) - (data.length?.old || 0);
 
-        // Remove edits outside the time window
-        article.recentEdits = article.recentEdits.filter(
-          (timestamp: number) => now - timestamp < WINDOW_MINUTES * 60 * 1000
+        articleStats.set(data.title, article);
+        
+        // Trigger a re-sort by updating the leaderboard
+        let sortedArticles = Array.from(articleStats.entries()).map(
+          ([title, stats]) => {
+            stats.score = calculateScore(stats);
+            return [title, stats] as [string, ArticleStats];
+          }
         );
 
-        articleStats.set(data.title, article);
-        updateLeaderboard();
+        switch (sortType) {
+          case "bytes":
+            sortedArticles = sortedArticles.sort(
+              (a, b) => {
+                const bytesDiff = Math.abs(b[1].byteChanges) - Math.abs(a[1].byteChanges);
+                return bytesDiff !== 0 ? bytesDiff : b[1].score - a[1].score;
+              }
+            );
+            break;
+          case "score":
+            sortedArticles = sortedArticles.sort((a, b) => b[1].score - a[1].score);
+            break;
+          case "edits":
+            sortedArticles = sortedArticles.sort(
+              (a, b) => {
+                const editsDiff = b[1].recentEdits.length - a[1].recentEdits.length;
+                return editsDiff !== 0 ? editsDiff : b[1].score - a[1].score;
+              }
+            );
+            break;
+        }
+
+        setLeaderboard(sortedArticles.slice(0, MAX_LEADERBOARD_SIZE));
       }
     };
 
     return () => {
       es.close();
     };
-  }, []);
+  }, [sortType]); // Add sortType as a dependency here too
 
   return (
     <div className="flex flex-col items-center py-10">
       <div className="w-full max-w-xl">
+        <div className="flex gap-2 mb-4">
+          <button
+            className={`${sortType === "bytes" ? "text-gray-500" : ""}`}
+            onClick={() => setSortType("bytes")}
+          >
+            bytes
+          </button>{" "}
+          |{" "}
+          <button
+            className={`${sortType === "score" ? "text-gray-500" : ""}`}
+            onClick={() => setSortType("score")}
+          >
+            score
+          </button>{" "}
+          |{" "}
+          <button
+            className={`${sortType === "edits" ? "text-gray-500" : ""}`}
+            onClick={() => setSortType("edits")}
+          >
+            edits
+          </button>
+        </div>
         <div className="space-y-2">
           {leaderboard.map(([title, stats], index) => (
-            <div key={title} className="">
-              <div className="flex justify-between items-center">
-                <span className="font-bold">
-                  {index + 1}. {title} ({stats.recentEdits.length} edits)
-                </span>
-                <span className="text-sm text-gray-600">
-                  Score: {stats.score.toFixed(2)}
-                </span>
-              </div>
-              <div className="text-sm text-gray-600">
-                Recent edits: {stats.recentEdits.length} | Byte changes:{" "}
-                {stats.byteChanges > 0 ? "+" : ""}
-                {stats.byteChanges}
-              </div>
+            <div key={title} className="flex justify-between">
+              <span className="">
+                {index + 1}. {title}
+              </span>
+              <span>
+                ({stats.recentEdits.length} | {stats.byteChanges > 0 ? "+" : ""}
+                {stats.byteChanges} | {stats.score.toFixed(2)})
+              </span>
             </div>
-          ))}{" "}
-          <p className="text-sm">
-            Score = (Recent Edits × {EDIT_COUNT_WEIGHT}) + (|Byte Changes| ÷
-            1000 × {BYTE_CHANGE_WEIGHT})
-          </p>
+          ))}
         </div>
       </div>
     </div>
