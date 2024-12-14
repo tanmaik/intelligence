@@ -35,6 +35,10 @@ jobs:
           sed -i 's|<IMAGE>|'$(echo $REGISTRY)/$(echo $IMAGE_NAME)':'$(echo $TAG)'|' $GITHUB_WORKSPACE/config/deployment.yml
 
       - name: Deploy to DigitalOcean Kubernetes
-        run: kubectl apply -f $GITHUB_WORKSPACE/config/deployment.yml
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig.yml
+          kubectl --kubeconfig=kubeconfig.yml apply -f $GITHUB_WORKSPACE/config/deployment.yml
+          rm kubeconfig.yml  # Clean up after deployment
         env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+          REGISTRY: "registry.digitalocean.com/tanmai"
+          IMAGE_NAME: "wiki-listener"
