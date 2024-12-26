@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
 }
 
 datasource db {
@@ -10,9 +7,18 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-model WikiEdit {
+model MediaWikiRecentChange {
   id        Int      @id @default(autoincrement())
-  title     String
+  title     String?
+  titleUrl  String?
+  comment   String?
   timestamp DateTime @default(now())
-  type      String
+  user      String?
+  bot       Boolean?
+  notifyUrl String?
+  fullEdit  String?
+  minor     Boolean?
+  lengthOld Int?
+  lengthNew Int?
+  serverUrl String?
 }
