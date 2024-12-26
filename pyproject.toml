@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "wiki"
+name = "pulse"
 version = "0.1.0"
 description = ""
 authors = ["Tanmai Kalisipudi <tanmai.kalisipudi@gmail.com>"]
@@ -17,6 +17,8 @@ websocket = "^0.2.1"
 websocket-client = "^1.8.0"
 socketio = "^0.2.1"
 python-socketio = {extras = ["client"], version = "^5.11.4"}
+tortoise-orm = "^0.23.0"
+aiosqlite = "^0.20.0"
 
 
 [build-system]

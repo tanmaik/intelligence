@@ -1,0 +1,27 @@
+{
+  "name": "pulse",
+  "version": "1.0.0",
+  "description": "give each article a score based on:  - how far down it appears on the page (e.g., how many words came before it).    - the lower amount of words that came before it the more important - we can see how interconnected they are - the higher a score an article is, the more important it is",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tanmaik/pulse.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tanmaik/pulse/issues"
+  },
+  "homepage": "https://github.com/tanmaik/pulse#readme",
+  "dependencies": {
+    "eventsource": "^3.0.2"
+  },
+  "devDependencies": {
+    "prisma": "^6.1.0"
+  }
+}
