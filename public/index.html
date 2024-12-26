@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>DB Size Monitor</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+      }
+      .metric {
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Database Size Monitor</h1>
+    <div class="metric">
+      Current Size: <span id="currentSize">-</span> bytes
+    </div>
+    <div class="metric">
+      Rate of Change: <span id="ratePerMinute">-</span> bytes/minute
+    </div>
+
+    <script>
+      const eventSource = new EventSource("/monitor/stream");
+
+      eventSource.onmessage = (event) => {
+        const metrics = JSON.parse(event.data);
+        document.getElementById("currentSize").textContent =
+          metrics.currentSize.toLocaleString();
+        document.getElementById("ratePerMinute").textContent =
+          metrics.ratePerMinute.toLocaleString();
+      };
+
+      eventSource.onerror = (error) => {
+        console.error("EventSource failed:", error);
+        eventSource.close();
+      };
+    </script>
+  </body>
+</html>
