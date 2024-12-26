@@ -1,4 +1,5 @@
 import { EventSource } from "eventsource";
+import process from "process";
 
 interface WikimediaEdit {
   server_name: string;
@@ -21,6 +22,7 @@ async function main(): Promise<void> {
         data.type === "edit" &&
         !data.title?.includes(":")
       ) {
+        console.log(data);
         console.log("Edit made to", data.title);
       }
     } catch (error) {
