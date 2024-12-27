@@ -14,21 +14,21 @@ jobs:
         uses: actions/checkout@v4
       - name: Install bun
         uses: oven-sh/setup-bun@v2
+      - name: Install Node.js
+        uses: actions/setup-node@v4
       - name: Check lock files
         run: |
-          # Remove existing lock files
-          rm -f package-lock.json bun.lockb
-
-          # Generate fresh bun.lockb
-          bun install
-
-          # Generate fresh package-lock.json
+          # First install with npm to generate package-lock.json
           npm install --package-lock-only
 
-          # Check if there are any changes in the lock files
+          # Then install with bun to generate bun.lockb
+          bun install
+
+          # If either lock file was modified, it means they weren't in sync
           if [[ -n "$(git status --porcelain package-lock.json bun.lockb)" ]]; then
-            echo "Lock files are out of sync!"
+            echo "Lock files are not in sync with package.json!"
             git status
+            git diff
             exit 1
           fi
 
