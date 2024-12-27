@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "bun --watch index.ts",
     "start": "bun run index.ts",
-    "studio": "prisma studio"
+    "studio": "prisma studio",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -29,7 +29,8 @@
     "url": "^0.11.4"
   },
   "devDependencies": {
-    "prisma": "^6.1.0",
-    "bun-types": "latest"
+    "@types/aws-lambda": "8.10.146",
+    "bun-types": "latest",
+    "prisma": "^6.1.0"
   }
 }
