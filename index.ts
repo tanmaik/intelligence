@@ -1,21 +1,18 @@
-import { Hono } from "hono";
-import { getFileSize } from "./monitor";
-import { main as startEditStream } from "./data/edits";
+import express, { Request, Response } from "express";
+import { main as startEditStream } from "./data/edits.js";
 
-const app = new Hono();
-app.get("/", (c) => c.text("keep a pulse"));
+const app = express();
+const port = 3000;
 
-app.get("/monitor", (c) => {
-  return c.text(getFileSize("./prisma/dev.db").toString());
+app.get("/", (_req: Request, res: Response) => {
+  res.send("keep a pulse");
 });
-
-app.notFound((c) => {
-  return c.text("huh", 404);
+app.use((_req: Request, res: Response) => {
+  res.status(404).send("huh");
 });
 
 startEditStream().catch(console.error);
 
-export default {
-  port: 3000,
-  fetch: app.fetch,
-};
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});
