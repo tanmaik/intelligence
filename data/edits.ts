@@ -1,9 +1,8 @@
 import { EventSource } from "eventsource";
 import { PrismaClient } from "@prisma/client";
-import process from "process";
 
 const prisma = new PrismaClient();
-const RETRY_DELAY = 5000; // 5 seconds
+const RETRY_DELAY = 5000;
 
 async function connectToEventStream(
   url: string,
@@ -76,16 +75,7 @@ async function connectToEventStream(
   }
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const url = "https://stream.wikimedia.org/v2/stream/recentchange";
   await connectToEventStream(url);
 }
-
-main().catch((error) => {
-  console.error("Fatal error:", error);
-  // Even for fatal errors, we'll retry
-  console.log("Restarting after fatal error...");
-  setTimeout(() => {
-    main().catch(console.error);
-  }, RETRY_DELAY);
-});
