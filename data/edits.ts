@@ -79,3 +79,8 @@ export async function main(): Promise<void> {
   const url = "https://stream.wikimedia.org/v2/stream/recentchange";
   await connectToEventStream(url);
 }
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
