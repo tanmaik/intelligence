@@ -9,6 +9,9 @@ jobs:
   build:
     name: build-app
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src
     env:
       DATABASE_URL: postgresql://test:test@localhost:5432/testdb
     services:
@@ -30,10 +33,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Install bun
         uses: oven-sh/setup-bun@v2
-      - name: cd src
-        run: cd src && ls -la && pwd
-      - name: debug what dir we are in
-        run: ls -la && pwd
       - name: Install dependencies
         run: bun install
       - name: Prisma generate
