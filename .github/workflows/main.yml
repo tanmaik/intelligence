@@ -6,8 +6,35 @@ on:
       - main
 
 jobs:
+  verify-locks:
+    name: Verify Lock Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
+      - name: Check lock files
+        run: |
+          # Remove existing lock files
+          rm -f package-lock.json bun.lockb
+
+          # Generate fresh bun.lockb
+          bun install
+
+          # Generate fresh package-lock.json
+          npm install --package-lock-only
+
+          # Check if there are any changes in the lock files
+          if [[ -n "$(git status --porcelain package-lock.json bun.lockb)" ]]; then
+            echo "Lock files are out of sync!"
+            git status
+            exit 1
+          fi
+
   build:
     name: build-app
+    needs: verify-locks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
