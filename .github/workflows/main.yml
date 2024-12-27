@@ -31,7 +31,7 @@ jobs:
       - name: Install bun
         uses: oven-sh/setup-bun@v2
       - name: cd src
-        run: cd src
+        run: cd src && ls -la && pwd
       - name: debug what dir we are in
         run: ls -la && pwd
       - name: Install dependencies
