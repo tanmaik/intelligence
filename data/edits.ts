@@ -6,8 +6,9 @@ const RETRY_DELAY = 5000;
 
 async function connectToEventStream(
   url: string,
-  attemptCount = 1
-): Promise<void> {
+  attemptCount = 1,
+  duration?: number
+): Promise<EventSource> {
   try {
     console.log(
       `Connecting to the EventStreams feed (attempt ${attemptCount})...`
@@ -40,7 +41,7 @@ async function connectToEventStream(
                 serverUrl: data.server_url,
               },
             });
-            console.log(`Saved edit for article: ${data.title}`);
+            console.log(`edit: ${data.title}`);
             break;
           }
           break;
@@ -59,25 +60,37 @@ async function connectToEventStream(
       console.error("EventSource failed:", error);
       eventSource.close();
 
-      console.log(
-        `Retrying connection after failure (attempt ${attemptCount + 1})...`
-      );
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
-      await connectToEventStream(url, attemptCount + 1);
+      if (!duration) {
+        console.log(
+          `Retrying connection after failure (attempt ${attemptCount + 1})...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+        await connectToEventStream(url, attemptCount + 1);
+      }
     };
+
+    return eventSource;
   } catch (error) {
     console.error("Error establishing connection:", error);
-    console.log(
-      `Retrying connection after error (attempt ${attemptCount + 1})...`
-    );
-    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
-    await connectToEventStream(url, attemptCount + 1);
+    if (!duration) {
+      console.log(
+        `Retrying connection after error (attempt ${attemptCount + 1})...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+      return await connectToEventStream(url, attemptCount + 1);
+    }
+    throw error;
   }
 }
 
-export async function main(): Promise<void> {
+export async function main(duration?: number): Promise<void> {
   const url = "https://stream.wikimedia.org/v2/stream/recentchange";
-  await connectToEventStream(url);
+  const eventSource = await connectToEventStream(url, 1, duration);
+
+  if (duration) {
+    await new Promise((resolve) => setTimeout(resolve, duration));
+    eventSource.close();
+  }
 }
 
 main().catch((e) => {

@@ -10,22 +10,11 @@ describe("Wikipedia Edit Stream", () => {
       logs.push(msg);
     });
 
-    // Start the edit stream
-    const mainPromise = main();
-
-    // Wait for 5 seconds
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-
-    // Restore original console.log
+    await main(5000);
     console.log = originalConsoleLog;
 
-    // Check if we received any edit logs
-    const editLogs = logs.filter((log) =>
-      log.includes("Saved edit for article:")
-    );
-    expect(editLogs.length).toBeGreaterThan(0);
+    const editLogs = logs.filter((log) => log.includes("edit:"));
 
-    // Print captured logs for verification
-    console.log("Captured edit logs:", editLogs);
-  });
+    expect(editLogs.length).toBeGreaterThan(0);
+  }, 10000);
 });
