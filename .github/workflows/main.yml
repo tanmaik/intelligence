@@ -32,6 +32,8 @@ jobs:
         uses: oven-sh/setup-bun@v2
       - name: cd src
         run: cd src
+      - name: debug what dir we are in
+        run: ls -la && pwd
       - name: Install dependencies
         run: bun install
       - name: Prisma generate
