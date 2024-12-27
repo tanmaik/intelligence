@@ -1,16 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["@types/bun"],
     "esModuleInterop": true,
-    "outDir": "./dist",
-    "rootDir": "./",
     "strict": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowSyntheticDefaultImports": true
-  },
-  "include": ["./**/*"],
-  "exclude": ["node_modules", "dist"]
+    "jsx": "react-jsx"
+  }
 }

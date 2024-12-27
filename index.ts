@@ -1,15 +1,18 @@
-import express, { Request, Response } from "express";
+import { Hono } from "hono";
+import { serve } from "bun";
 
-const app = express();
+export const app = new Hono();
+
+app.get("/", (c) => c.text("keep a pulse"));
+
+app.notFound((c) => c.text("huh", 404));
+
 const port = 3000;
 
-app.get("/", (_req: Request, res: Response) => {
-  res.send("keep a pulse");
-});
-app.use((_req: Request, res: Response) => {
-  res.status(404).send("huh");
-});
-
-app.listen(port, () => {
+if (import.meta.main) {
+  serve({
+    port,
+    fetch: app.fetch,
+  });
   console.log(`Server running at http://localhost:${port}`);
-});
+}
