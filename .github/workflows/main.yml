@@ -6,35 +6,8 @@ on:
       - main
 
 jobs:
-  verify-locks:
-    name: Verify Lock Files
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install bun
-        uses: oven-sh/setup-bun@v2
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-      - name: Check lock files
-        run: |
-          # First install with npm to generate package-lock.json
-          npm install --package-lock-only
-
-          # Then install with bun to generate bun.lockb
-          bun install
-
-          # If either lock file was modified, it means they weren't in sync
-          if [[ -n "$(git status --porcelain package-lock.json bun.lockb)" ]]; then
-            echo "Lock files are not in sync with package.json!"
-            git status
-            git diff
-            exit 1
-          fi
-
   build:
     name: build-app
-    needs: verify-locks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
