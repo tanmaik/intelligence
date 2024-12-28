@@ -1,15 +1,15 @@
 import { Hono } from "hono";
 import { serve } from "bun";
-import { PrismaClient } from "@prisma/client";
+import { cors } from "hono/cors";
+import { edits } from "./routes/edits";
+
 export const app = new Hono();
+
+app.use("/*", cors());
 
 app.get("/", (c) => c.text("keep a pulse"));
 
-app.get("/edits", async (c) => {
-  const prisma = new PrismaClient();
-  const edits = await prisma.mediaWikiRecentChange.findMany();
-  return c.json(edits);
-});
+app.route("/edits", edits);
 
 app.notFound((c) => c.text("huh", 404));
 
