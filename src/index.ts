@@ -1,24 +1,20 @@
-import { Hono } from "hono";
-import { serve } from "bun";
-import { cors } from "hono/cors";
-import { edits } from "./routes/edits";
+import express from "express";
+import cors from "cors";
+import { edits } from "./routes/edits.js";
 
-export const app = new Hono();
+export const app = express();
 
-app.use("/*", cors());
+app.use(cors());
+app.use(express.json());
 
-app.get("/", (c) => c.text("keep a pulse"));
+app.get("/", (req, res) => res.send("keep a pulse"));
 
-app.route("/edits", edits);
+app.use("/edits", edits);
 
-app.notFound((c) => c.text("huh", 404));
+app.use((req, res) => res.status(404).send("huh"));
 
 const port = process.env.PORT || 3000;
 
-if (import.meta.main) {
-  serve({
-    port,
-    fetch: app.fetch,
-  });
+app.listen(port, () => {
   console.log(`Server running on port ${port}`);
-}
+});
