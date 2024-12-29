@@ -1,10 +1,6 @@
 package engine
 
 var (
-    AllEdits []FullChange
+	EditCounts  = make(map[string]int)
+	ByteChanges = make(map[string]int)
 )
-
-func AddEdit(change FullChange) {
-    AllEdits = append(AllEdits, change)
-}
-
