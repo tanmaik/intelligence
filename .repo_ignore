@@ -1,6 +1,7 @@
 # Package manager caches
 **/node_modules/
 **/.npm/
+**/.next/
 **/__pycache__/
 **/.pytest_cache/
 **/.mypy_cache/
@@ -22,6 +23,8 @@
 **/*.tmp
 **/*.temp
 **/*.bak
+**/*.lockb
+
 
 **/*.meta
 **/package-lock.json

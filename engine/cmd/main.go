@@ -7,19 +7,11 @@ import (
 
 func main() {
     go engine.StartIngestion()
-		for { 
-			time.Sleep(5 * time.Second)
-		}
-
-		// for { 
-		// 	time.Sleep(5 * time.Second)
-		// 	engine.LogTop5ByEditCount()
-		// 	engine.LogTop5ByByteChanges()
-		// }
-
-    // Create a SpikeTracker with threshold=5 and cooldown=2
-    // // Create a SpikeTracker with threshold=5 and cooldown=2
-    // spikeTracker := analytics.NewSpikeTracker(5, 2)
+	for {
+		time.Sleep(5 * time.Second)
+	}
+	// Create a SpikeTracker with threshold=5 and cooldown=2
+	// spikeTracker := analytics.NewSpikeTracker(5, 2)
 
     // // Run MonitorSpikes periodically
     // ticker := time.NewTicker(5 * time.Second)
