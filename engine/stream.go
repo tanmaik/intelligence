@@ -108,9 +108,7 @@ func StartIngestion() {
 		processedCount := 0
 		for _, edit := range historicalEdits {
 			if !strings.Contains(edit.Title, ":") {
-				EditCounts[edit.Title]++
-				byteDiff := abs(edit.LengthNew - edit.LengthOld)
-				ByteChanges[edit.Title] += byteDiff
+				AddEdit(edit)
 				processedCount++
 			}
 		}
@@ -149,10 +147,9 @@ func StartIngestion() {
 		}
 
 		if change.Meta.Domain == "en.wikipedia.org" && !strings.Contains(change.Title, ":") {
-			EditCounts[change.Title]++
+			AddEdit(change)
 			byteDiff := abs(change.Length.New - change.Length.Old)
-			ByteChanges[change.Title] += byteDiff
-			fmt.Printf("edit #%d: %s (%d B)\n", EditCounts[change.Title], change.Title, ByteChanges[change.Title])
+			fmt.Printf("edit: %s (%d B)\n", change.Title, byteDiff)
 		}
 	}
 
