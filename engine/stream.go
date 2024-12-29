@@ -13,60 +13,6 @@ import (
 	"time"
 )
 
-type FullChange struct {
-	Schema string `json:"$schema"`
-	Meta   struct {
-		URI       string `json:"uri"`
-		RequestID string `json:"request_id"`
-		ID        string `json:"id"`
-		DT        string `json:"dt"`
-		Domain    string `json:"domain"`
-		Stream    string `json:"stream"`
-		Topic     string `json:"topic"`
-		Partition int    `json:"partition"`
-		Offset    int    `json:"offset"`
-	} `json:"meta"`
-	ID        int    `json:"id"`
-	Type      string `json:"type"`
-	Namespace int    `json:"namespace"`
-	Title     string `json:"title"`
-	TitleURL  string `json:"title_url"`
-	Comment   string `json:"comment"`
-	Timestamp int    `json:"timestamp"`
-	User      string `json:"user"`
-	Bot       bool   `json:"bot"`
-	NotifyURL string `json:"notify_url"`
-	Minor     bool   `json:"minor"`
-	Length    struct {
-		Old int `json:"old"`
-		New int `json:"new"`
-	} `json:"length"`
-	Revision struct {
-		Old int `json:"old"`
-		New int `json:"new"`
-	} `json:"revision"`
-	ServerURL     string `json:"server_url"`
-	ServerName    string `json:"server_name"`
-	ServerPath    string `json:"server_script_path"`
-	Wiki          string `json:"wiki"`
-	ParsedComment string `json:"parsedcomment"`
-}
-
-type StoredEdit struct {
-	ID        int       `json:"id"`
-	Title     string    `json:"title"`
-	TitleURL  string    `json:"titleUrl"`
-	Comment   string    `json:"comment"`
-	Timestamp time.Time `json:"timestamp"`
-	User      string    `json:"user"`
-	Bot       bool      `json:"bot"`
-	NotifyURL string    `json:"notifyUrl"`
-	Minor     bool      `json:"minor"`
-	LengthOld int       `json:"lengthOld"`
-	LengthNew int       `json:"lengthNew"`
-	ServerURL string    `json:"serverUrl"`
-}
-
 func abs(x int) int {
 	if x < 0 {
 		return -x
@@ -126,31 +72,85 @@ func StartIngestion() {
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
 		line := scanner.Bytes()
+
 		if !bytes.HasPrefix(line, []byte("data: ")) {
 			continue
 		}
 		line = bytes.TrimPrefix(line, []byte("data: "))
 
-		// Validate JSON before processing
 		if !json.Valid(line) {
 			continue
 		}
 
-		var change FullChange
-		if err := json.Unmarshal(line, &change); err != nil {
+		var data map[string]interface{}
+		if err := json.Unmarshal(line, &data); err != nil {
 			continue
 		}
 
-		// Validate required fields
-		if change.Meta.Domain == "" || change.Title == "" || change.Length.New == 0 {
+		metaVal, ok := data["meta"].(map[string]interface{})
+		if !ok {
 			continue
 		}
 
-		if change.Meta.Domain == "en.wikipedia.org" && !strings.Contains(change.Title, ":") {
-			AddEdit(change)
-			byteDiff := abs(change.Length.New - change.Length.Old)
-			fmt.Printf("edit: %s (%d B)\n", change.Title, byteDiff)
+		domain, _ := metaVal["domain"].(string)
+		if domain != "en.wikipedia.org" {
+			continue
 		}
+
+		evtType, _ := data["type"].(string)
+		if evtType != "edit" {
+			continue
+		}
+
+		title, _ := data["title"].(string)
+		if title == "" || strings.Contains(title, ":") {
+			continue
+		}
+
+		idFloat, _ := data["id"].(float64)
+		id := int(idFloat)
+
+		titleURL, _ := data["title_url"].(string)
+		comment, _ := data["comment"].(string)
+
+		tsFloat, _ := data["timestamp"].(float64)
+		tsTime := time.Unix(int64(tsFloat), 0)
+
+		user, _ := data["user"].(string)
+		bot, _ := data["bot"].(bool)
+		notifyURL, _ := data["notify_url"].(string)
+		minor, _ := data["minor"].(bool)
+
+		lengthMap, _ := data["length"].(map[string]interface{})
+		oldLenFloat, _ := lengthMap["old"].(float64)
+		newLenFloat, _ := lengthMap["new"].(float64)
+		lengthOld := int(oldLenFloat)
+		lengthNew := int(newLenFloat)
+
+		serverURL, _ := data["server_url"].(string)
+
+		storedEdit := StoredEdit{
+			ID:        id,
+			Title:     title,
+			TitleURL:  titleURL,
+			Comment:   comment,
+			Timestamp: tsTime,
+			User:      user,
+			Bot:       bot,
+			NotifyURL: notifyURL,
+			Minor:     minor,
+			LengthOld: lengthOld,
+			LengthNew: lengthNew,
+			ServerURL: serverURL,
+		}
+
+		AddEdit(storedEdit)
+
+		byteDiff := abs(lengthNew - lengthOld)
+		editCount := GetEditCount(title)
+		totalBytesChanged := GetTotalBytesChanged(title)
+		fmt.Printf("edit #%d: %s (%d B now, %d B total)\n",
+			editCount, title, byteDiff, totalBytesChanged)
 	}
 
 	if err := scanner.Err(); err != nil {
