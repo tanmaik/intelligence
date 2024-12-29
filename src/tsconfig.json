@@ -1,18 +1,14 @@
 {
   "compilerOptions": {
-    "types": ["jest", "node"],
-    "module": "esnext",
-    "target": "esnext",
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "moduleDetection": "force",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["@types/bun", "jest", "node"],
+    "esModuleInterop": true,
     "strict": true,
-    "downlevelIteration": true,
     "skipLibCheck": true,
-    "jsx": "preserve",
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": true,
-    "noEmit": true
-  }
+    "jsx": "react-jsx",
+    "outDir": "dist"
+  },
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"]
 }
