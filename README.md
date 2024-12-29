@@ -1,5 +1,5 @@
 <h1 align="center" style="border-bottom: none">
-          Pulse
+          pulse
 </h1>
 
 <div align="center">
