@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -74,7 +75,12 @@ func abs(x int) int {
 }
 
 func fetchHistoricalEdits() ([]StoredEdit, error) {
-	resp, err := http.Get("http://localhost:8080/edits")
+	baseURL := os.Getenv("API_BASE_URL")
+	if baseURL == "" {
+		baseURL = "http://localhost:8080" // fallback default
+	}
+	
+	resp, err := http.Get(baseURL + "/edits")
 	if err != nil {
 		return nil, fmt.Errorf("error fetching historical edits: %v", err)
 	}
