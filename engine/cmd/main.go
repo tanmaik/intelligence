@@ -9,7 +9,7 @@ func main() {
 	go engine.StartIngestion()
 
 	for {
-		time.Sleep(30 * time.Second)
+		time.Sleep(5 * time.Second)
 		engine.LogTop5ByEditCount()
 		engine.LogTop5ByByteChanges()
 	}
