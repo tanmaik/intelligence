@@ -8,7 +8,7 @@ edits.get("/", async (req, res) => {
     const edits = await prisma.mediaWikiRecentChange.findMany();
     res.json(edits);
   } catch (error) {
-    console.error(error);
+    console.log(error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
