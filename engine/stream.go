@@ -58,8 +58,9 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	edits := make([]FullChange, 0) // Array to store full edit events
+	edits := make([]FullChange, 0)
 
+	editCounts := make(map[string]int)
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
 		line := scanner.Bytes()
@@ -74,10 +75,13 @@ func main() {
 			continue
 		}
 
-		// Filter for English Wikipedia and exclude special pages
+		
 		if change.Meta.Domain == "en.wikipedia.org" && !strings.Contains(change.Title, ":") {
 			edits = append(edits, change) // Save the full edit event to memory
-			fmt.Printf("edit: %s\n", change.Title)
+			editCounts[change.Title]++
+
+			// Print the title and edit count
+			fmt.Printf("edit #%d: %s\n", editCounts[change.Title], change.Title)
 		}
 	}
 
