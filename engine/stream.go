@@ -10,8 +10,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/schollz/progressbar/v3"
 )
 
 func abs(x int) int {
@@ -21,7 +19,6 @@ func abs(x int) int {
 	return x
 }
 
-// FullChange represents the entire edit event structure from Wikimedia EventStream
 type FullChange struct {
 	Schema string `json:"$schema"`
 	Meta   struct {
@@ -61,7 +58,6 @@ type FullChange struct {
 	ParsedComment string `json:"parsedcomment"`
 }
 
-// StoredEdit represents the edit structure from our API
 type StoredEdit struct {
 	ID        int       `json:"id"`
 	Title     string    `json:"title"`
@@ -89,8 +85,6 @@ func fetchHistoricalEdits() ([]StoredEdit, error) {
 		return nil, fmt.Errorf("error reading response body: %v", err)
 	}
 
-
-
 	var edits []StoredEdit
 	if err := json.Unmarshal(body, &edits); err != nil {
 		return nil, fmt.Errorf("error parsing JSON: %v", err)
@@ -100,29 +94,26 @@ func fetchHistoricalEdits() ([]StoredEdit, error) {
 }
 
 func main() {
-	// Initialize maps for tracking edits
 	editCounts := make(map[string]int)
 	byteChanges := make(map[string]int)
 
-	// Fetch and process historical edits first
 	fmt.Println("Fetching historical edits...")
 	historicalEdits, err := fetchHistoricalEdits()
 	if err != nil {
 		log.Printf("Error fetching historical edits: %v", err)
 	} else {
-		bar := progressbar.Default(int64(len(historicalEdits)))
+		processedCount := 0
 		for _, edit := range historicalEdits {
-			if !strings.Contains(edit.Title, ":") { // Filter out non-article edits
+			if !strings.Contains(edit.Title, ":") {
 				editCounts[edit.Title]++
 				byteDiff := abs(edit.LengthNew - edit.LengthOld)
 				byteChanges[edit.Title] += byteDiff
+				processedCount++
 			}
-			bar.Add(1)
 		}
-		fmt.Printf("\nProcessed %d historical edits\n", len(historicalEdits))
+		fmt.Printf("Processed %d historical edits\n", processedCount)
 	}
 
-	// Now connect to the live stream
 	fmt.Println("Connecting to live stream...")
 	url := "https://stream.wikimedia.org/v2/stream/recentchange"
 	resp, err := http.Get(url)
