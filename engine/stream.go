@@ -1,4 +1,4 @@
-package main
+package engine
 
 import (
 	"bufio"
@@ -11,13 +11,6 @@ import (
 	"strings"
 	"time"
 )
-
-func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
 
 type FullChange struct {
 	Schema string `json:"$schema"`
@@ -73,6 +66,13 @@ type StoredEdit struct {
 	ServerURL string    `json:"serverUrl"`
 }
 
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 func fetchHistoricalEdits() ([]StoredEdit, error) {
 	resp, err := http.Get("http://localhost:8080/edits")
 	if err != nil {
@@ -93,10 +93,7 @@ func fetchHistoricalEdits() ([]StoredEdit, error) {
 	return edits, nil
 }
 
-func main() {
-	editCounts := make(map[string]int)
-	byteChanges := make(map[string]int)
-
+func StartIngestion() {
 	fmt.Println("Fetching historical edits...")
 	historicalEdits, err := fetchHistoricalEdits()
 	if err != nil {
@@ -105,9 +102,9 @@ func main() {
 		processedCount := 0
 		for _, edit := range historicalEdits {
 			if !strings.Contains(edit.Title, ":") {
-				editCounts[edit.Title]++
+				EditCounts[edit.Title]++
 				byteDiff := abs(edit.LengthNew - edit.LengthOld)
-				byteChanges[edit.Title] += byteDiff
+				ByteChanges[edit.Title] += byteDiff
 				processedCount++
 			}
 		}
@@ -137,10 +134,10 @@ func main() {
 		}
 
 		if change.Meta.Domain == "en.wikipedia.org" && !strings.Contains(change.Title, ":") {
-			editCounts[change.Title]++
+			EditCounts[change.Title]++
 			byteDiff := abs(change.Length.New - change.Length.Old)
-			byteChanges[change.Title] += byteDiff
-			fmt.Printf("edit #%d: %s (%d B)\n", editCounts[change.Title], change.Title, byteChanges[change.Title])
+			ByteChanges[change.Title] += byteDiff
+			fmt.Printf("edit #%d: %s (%d B)\n", EditCounts[change.Title], change.Title, ByteChanges[change.Title])
 		}
 	}
 
