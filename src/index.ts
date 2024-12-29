@@ -8,7 +8,6 @@ export const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Log all incoming requests
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
@@ -21,13 +20,11 @@ app.get("/", (req, res) => {
 
 app.use("/edits", edits);
 
-// 404 handler
 app.use((req, res) => {
-  console.warn(`[404] Route not found: ${req.method} ${req.path}`);
-  res.status(404).json({ error: "Route not found" });
+  console.log(`[404] Route not found: ${req.method} ${req.path}`);
+  res.status(404).send("huh");
 });
 
-// Global error handler
 app.use(
   (
     err: Error,
@@ -35,7 +32,7 @@ app.use(
     res: express.Response,
     next: express.NextFunction
   ) => {
-    console.error(`[Error] ${err.stack || err.message}`);
+    console.log(`[Error] ${err.stack || err.message}`);
     res.status(500).json({ error: "Internal server error" });
   }
 );
