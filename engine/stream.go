@@ -127,9 +127,18 @@ func StartIngestion() {
 		}
 		line = bytes.TrimPrefix(line, []byte("data: "))
 
+		// Validate JSON before processing
+		if !json.Valid(line) {
+			continue
+		}
+
 		var change FullChange
 		if err := json.Unmarshal(line, &change); err != nil {
-			log.Printf("Error decoding event: %v", err)
+			continue
+		}
+
+		// Validate required fields
+		if change.Meta.Domain == "" || change.Title == "" || change.Length.New == 0 {
 			continue
 		}
 
