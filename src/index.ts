@@ -3,7 +3,7 @@ import cors from "cors";
 import { edits } from "./routes/edits.js";
 import { prisma } from "./db/client.js";
 
-export const app = express();
+const app = express();
 
 app.use(cors());
 app.use(express.json());
@@ -37,15 +37,4 @@ app.use(
   }
 );
 
-const port = parseInt(process.env.PORT || "8080");
-
-app.listen(port, "0.0.0.0", async () => {
-  console.log(`[Server] Running on port ${port}`);
-  try {
-    const test = await prisma.mediaWikiRecentChange.findFirst();
-    console.log("[Server] Database connection successful");
-  } catch (error) {
-    console.log("[Server] Database connection failed");
-    process.exit(1);
-  }
-});
+export default app;

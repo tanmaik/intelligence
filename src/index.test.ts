@@ -1,5 +1,5 @@
 import request from "supertest";
-import { app } from "./index.js";
+import app from "./index.js";
 
 describe("Express App", () => {
   test('GET / returns "keep a pulse"', async () => {
