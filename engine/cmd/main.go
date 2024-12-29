@@ -10,7 +10,7 @@ func main() {
 
 	for {
 		time.Sleep(5 * time.Second)
-		engine.LogTop5ByEditCount()
-		engine.LogTop5ByByteChanges()
+		// engine.LogTop5ByEditCount()
+		// engine.LogTop5ByByteChanges()
 	}
 }
