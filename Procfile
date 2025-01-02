@@ -1,1 +1,0 @@
-server: cd src && npm install && npm install typescript && npm run build && node dist/server.js

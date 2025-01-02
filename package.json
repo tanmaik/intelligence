@@ -1,6 +1,0 @@
-{
-  "name": "pulse",
-  "scripts": {
-    "heroku-postbuild": "echo 'test'"
-  }
-}
