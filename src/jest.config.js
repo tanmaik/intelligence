@@ -1,6 +1,8 @@
-export default {
+/** @type {import('jest').Config} */
+const config = {
   preset: "ts-jest",
   testEnvironment: "node",
+  moduleFileExtensions: ["ts", "js"],
   extensionsToTreatAsEsm: [".ts"],
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1",
@@ -14,3 +16,5 @@ export default {
     ],
   },
 };
+
+export default config;
