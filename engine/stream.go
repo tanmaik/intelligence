@@ -28,7 +28,13 @@ func fetchHistoricalEdits() ([]StoredEdit, error) {
 
 	resp, err := http.Get(baseURL + "/edits")
 	if err != nil {
-		return nil, fmt.Errorf("error fetching historical edits: %v", err)
+		log.Printf("Localhost request failed: %v", err)
+		log.Printf("Fetching historical edits from main server...")
+		baseURL = "https://main-server-cloud.up.railway.app" 
+		resp, err = http.Get(baseURL + "/edits")
+		if err != nil {
+			return nil, fmt.Errorf("error fetching historical edits from main server: %v", err)
+		}
 	}
 	defer resp.Body.Close()
 
