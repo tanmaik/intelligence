@@ -3,7 +3,7 @@ import { prisma } from "./db/client.js";
 
 const port = parseInt(process.env.PORT || "8080");
 
-app.listen(port, "0.0.0.0", async () => {
+app.listen(port, async () => {
   console.log(`[Server] Running on port ${port}`);
   try {
     const test = await prisma.mediaWikiRecentChange.findFirst();
