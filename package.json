@@ -1,6 +1,6 @@
 {
   "name": "pulse",
   "scripts": {
-    "heroku-postbuild": "cd src && npm install && pwd && ls -la"
+    "heroku-postbuild": "cd src && npm install"
   }
 }
