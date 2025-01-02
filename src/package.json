@@ -4,12 +4,16 @@
   "type": "module",
   "scripts": {
     "postinstall": "prisma generate",
+    "heroku-postbuild": "curl -fsSL https://bun.sh/install | bash && bun install",
     "test": "jest",
     "test:watch": "jest --watch"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tanmaik/pulse.git"
+  },
+  "engines": {
+    "bun": "latest"
   },
   "keywords": [],
   "author": "",
