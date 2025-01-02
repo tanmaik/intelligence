@@ -9,16 +9,16 @@ datasource db {
 
 model MediaWikiRecentChange {
   id        Int      @id @default(autoincrement())
-  title     String?
-  titleUrl  String?
-  comment   String?
+  title     String?  @db.Text
+  titleUrl  String?  @db.Text
+  comment   String?  @db.Text
   timestamp DateTime @default(now())
-  user      String?
+  user      String?  @db.Text
   bot       Boolean?
-  notifyUrl String?
-  fullEdit  String?
+  notifyUrl String?  @db.Text
+  fullEdit  String?  @db.Text
   minor     Boolean?
   lengthOld Int?
   lengthNew Int?
-  serverUrl String?
+  serverUrl String?  @db.Text
 }
