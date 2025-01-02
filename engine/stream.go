@@ -45,18 +45,45 @@ func fetchHistoricalEdits() ([]StoredEdit, error) {
 	return edits, nil
 }
 
+
+
+func printProgressBar(progress float64, barWidth int) {
+	// Convert the progress (0-100) to an integer representing the number of filled sections
+	filled := int((progress / 100.0) * float64(barWidth))
+	if filled > barWidth {
+		filled = barWidth
+	}
+
+	// Create the bar string
+	bar := strings.Repeat("=", filled) + strings.Repeat(" ", barWidth-filled)
+
+	// Print (with carriage return) so we overwrite on the same line
+	fmt.Printf("\r[%s] %.2f%%", bar, progress)
+
+	// When we reach 100%, print a newline
+	if progress >= 100.0 {
+		fmt.Println()
+	}
+}
+
+
+
 func StartIngestion() {
 	fmt.Println("Fetching historical edits...")
 	historicalEdits, err := fetchHistoricalEdits()
 	if err != nil {
 		log.Printf("Error fetching historical edits: %v", err)
 	} else {
+		totalEdits := len(historicalEdits)
 		processedCount := 0
-		for _, edit := range historicalEdits {
+		for i, edit := range historicalEdits {
 			if !strings.Contains(edit.Title, ":") {
 				AddEdit(edit)
+				IngestEditForAnalytics(edit)
 				processedCount++
 			}
+			progress := float64(i+1) / float64(totalEdits) * 100
+			printProgressBar(progress, 40) // 40 = width of the progress bar
 		}
 		fmt.Printf("Processed %d historical edits\n", processedCount)
 	}
@@ -145,7 +172,7 @@ func StartIngestion() {
 		}
 
 		AddEdit(storedEdit)
-
+	        IngestEditForAnalytics(storedEdit)
 		byteDiff := abs(lengthNew - lengthOld)
 		editCount := GetEditCount(title)
 		totalBytesChanged := GetTotalBytesChanged(title)

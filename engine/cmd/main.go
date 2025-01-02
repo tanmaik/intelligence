@@ -1,24 +1,27 @@
 package main
 
 import (
-	"engine"
-	"time"
+    "encoding/json"
+    "log"
+    "net/http"
+    "engine"
 )
 
 func main() {
     go engine.StartIngestion()
-	for {
-		time.Sleep(5 * time.Second)
-	}
-	// Create a SpikeTracker with threshold=5 and cooldown=2
-	// spikeTracker := analytics.NewSpikeTracker(5, 2)
 
-    // // Run MonitorSpikes periodically
-    // ticker := time.NewTicker(5 * time.Second)
-    // defer ticker.Stop()
+    http.HandleFunc("/analytics", func(w http.ResponseWriter, r *http.Request) {
+        // e.g. query param ?granularity=1m
+        gran := r.URL.Query().Get("granularity")
+        if gran == "" {
+            gran = "1m" // default
+        }
+        buckets := engine.GetTop5Articles(gran)
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(buckets)
+    })
 
-    // // Instead of 'for { select {} }', use 'for range ticker.C'
-    // for range ticker.C {
-    //     spikeTracker.MonitorSpikes()
-    // }
+    log.Println("Analytics server listening on :8000")
+    http.ListenAndServe(":8000", nil)
 }
+
