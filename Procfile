@@ -1,1 +1,1 @@
-ingest: cd src && bun run data/edits.ts
+ingest: cd src && npm run build && node dist/data/edits.js
