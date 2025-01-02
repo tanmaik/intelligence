@@ -13,18 +13,19 @@ jobs:
       run:
         working-directory: src
     env:
-      DATABASE_URL: postgresql://test:test@localhost:5432/testdb
+      DATABASE_URL: mysql://test:test@localhost:3306/testdb
     services:
-      postgres:
-        image: postgres:latest
+      mysql:
+        image: mysql:latest
         env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: testdb
+          MYSQL_ROOT_PASSWORD: test
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: test
+          MYSQL_PASSWORD: test
         ports:
-          - 5432:5432
+          - 3306:3306
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "mysqladmin ping --silent"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
