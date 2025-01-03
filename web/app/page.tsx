@@ -34,6 +34,11 @@ async function getRecentSpikes(): Promise<Spike[]> {
 
 function SpikesList() {
   const [spikes, setSpikes] = useState<Spike[]>([]);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     const fetchSpikes = async () => {
@@ -41,21 +46,29 @@ function SpikesList() {
       setSpikes(newSpikes);
     };
 
-    // Initial fetch
-    fetchSpikes();
+    // Only start fetching if we're on the client
+    if (isClient) {
+      // Initial fetch
+      fetchSpikes();
 
-    // Set up polling every second
-    const interval = setInterval(fetchSpikes, 1000);
+      // Set up polling every second
+      const interval = setInterval(fetchSpikes, 1000);
 
-    // Cleanup on unmount
-    return () => clearInterval(interval);
-  }, []);
+      // Cleanup on unmount
+      return () => clearInterval(interval);
+    }
+  }, [isClient]);
+
+  // Don't render anything until we're on the client
+  if (!isClient) {
+    return null;
+  }
 
   const activeSpikes = spikes.filter((spike) => spike.isActive);
   const inactiveSpikes = spikes.filter((spike) => !spike.isActive);
 
   const SpikeItem = ({ spike }: { spike: Spike }) => (
-    <div key={`${spike.title}-${spike.startTime}`}>
+    <div>
       <a
         href={`https://en.wikipedia.org/wiki/${encodeURIComponent(
           spike.title
@@ -82,10 +95,7 @@ function SpikesList() {
           ) : (
             <div className="space-y-1">
               {activeSpikes.map((spike) => (
-                <SpikeItem
-                  key={`${spike.title}-${spike.startTime}`}
-                  spike={spike}
-                />
+                <SpikeItem key={spike.id} spike={spike} />
               ))}
             </div>
           )}
@@ -98,10 +108,7 @@ function SpikesList() {
           <div className="mt-2">
             <div className="space-y-1">
               {inactiveSpikes.map((spike) => (
-                <SpikeItem
-                  key={`${spike.title}-${spike.startTime}`}
-                  spike={spike}
-                />
+                <SpikeItem key={spike.id} spike={spike} />
               ))}
             </div>
           </div>
