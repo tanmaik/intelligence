@@ -152,11 +152,18 @@ func CheckInactivity() {
 			if now.Sub(m.LastEdit) > SPIKE_INACTIVITY_DURATION {
 				m.InSpike = false
 				// Optionally reset Edits/Bytes, if that fits your logic: (YES)
-				m.Edits = 0
-				m.Bytes = 0
+				// m.Edits = 0
+				// m.Bytes = 0
 				fmt.Printf("[SPIKE END] Article '%s' ended due to %v of inactivity.\n", title, SPIKE_INACTIVITY_DURATION)
 				// Make final API call to mark spike as inactive
 				postSpikeToAPI(m)
+				// TODO: reset metrics
+				m.Edits = 0
+				m.Bytes = 0
+				// TODO: reset spike metrics
+				m.InSpike = false
+				m.StartTime = time.Time{}
+
 			}
 		}
 	}
