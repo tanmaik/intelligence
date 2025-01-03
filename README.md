@@ -9,4 +9,21 @@
 
 </div>
 
+## what is this?
 
+tracks wikipedia edit activity in real-time to spot breaking news and trending topics. when lots of people start editing the same article at once, something's probably going down.
+
+## stack
+
+- frontend: next.js + typescript
+- backend: express + prisma
+- stream processor: golang
+- db: mysql via planetscale
+
+## deployment
+
+running on railway + vercel
+
+## license
+
+apache 2.0
