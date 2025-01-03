@@ -8,17 +8,6 @@
     "build": "tsc",
     "start": "node dist/server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tanmaik/pulse.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/tanmaik/pulse/issues"
-  },
-  "homepage": "https://github.com/tanmaik/pulse#readme",
   "dependencies": {
     "@prisma/client": "6.1.0",
     "@types/bun": "^1.1.14",
