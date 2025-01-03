@@ -119,7 +119,17 @@ edits.post("/spikes", async (req, res) => {
     // Check if a spike with same title and startTime exists
     const existingSpike = await prisma.mediaWikiRecentChangeSpike.findFirst({
       where: {
-        AND: [{ title }, { startTime: new Date(startTime) }],
+        AND: [
+          { title },
+          {
+            startTime: {
+              // Match start times within a 5 minute window
+              gte: new Date(new Date(startTime).getTime() - 5 * 60 * 1000),
+              lte: new Date(new Date(startTime).getTime() + 5 * 60 * 1000),
+            },
+          },
+          // { isActive: true }, // Only match against active spikes
+        ],
       },
     });
 
@@ -151,6 +161,46 @@ edits.post("/spikes", async (req, res) => {
       console.log(`[Spikes] Created new spike for article '${title}'`);
     }
     res.json(spike);
+  } catch (error) {
+    handleError(error, res);
+  }
+});
+
+edits.get("/spikes/active", async (req, res) => {
+  try {
+    console.log("[Spikes] Fetching active spikes");
+    const spikes = await prisma.mediaWikiRecentChangeSpike.findMany({
+      where: {
+        isActive: true,
+      },
+      orderBy: {
+        lastEditTime: "desc",
+      },
+      take: 10,
+    });
+    console.log(`[Spikes] Found ${spikes.length} active spikes`);
+    res.json(spikes);
+  } catch (error) {
+    handleError(error, res);
+  }
+});
+
+edits.get("/spikes/recent", async (req, res) => {
+  try {
+    console.log("[Spikes] Fetching recent spikes");
+    const spikes = await prisma.mediaWikiRecentChangeSpike.findMany({
+      where: {
+        lastEditTime: {
+          gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24 hours
+        },
+      },
+      orderBy: {
+        lastEditTime: "desc",
+      },
+      take: 20,
+    });
+    console.log(`[Spikes] Found ${spikes.length} recent spikes`);
+    res.json(spikes);
   } catch (error) {
     handleError(error, res);
   }

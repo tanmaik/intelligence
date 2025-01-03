@@ -33,6 +33,9 @@ type SpikePayload struct {
 // allArticleMetrics tracks each article's metrics in memory.
 var allArticleMetrics map[string]*ArticleMetrics
 
+// spikeQueue is a channel for queuing spike updates
+var spikeQueue chan *ArticleMetrics
+
 // Example weighting/threshold constants:
 const (
 	SPIKE_BYTES_THRESHOLD      = 10000           // If total bytes changed exceed this, consider a spike
@@ -46,6 +49,52 @@ const (
 
 func init() {
 	allArticleMetrics = make(map[string]*ArticleMetrics)
+	// Initialize the spike queue with a reasonable buffer size
+	spikeQueue = make(chan *ArticleMetrics, 1000)
+	// Start the background worker
+	go processSpikeQueue()
+}
+
+// processSpikeQueue runs in the background and processes queued spike updates
+func processSpikeQueue() {
+	for metrics := range spikeQueue {
+		payload := SpikePayload{
+			Title:        metrics.Title,
+			StartTime:    metrics.StartTime,
+			LastEditTime: metrics.LastEdit,
+			TotalEdits:   metrics.Edits,
+			TotalBytes:   metrics.Bytes,
+			IsActive:     metrics.InSpike,
+		}
+
+		jsonData, err := json.Marshal(payload)
+		if err != nil {
+			fmt.Printf("[ERROR] Failed to marshal spike data: %v\n", err)
+			continue
+		}
+
+		resp, err := http.Post(SPIKE_API_ENDPOINT, "application/json", bytes.NewBuffer(jsonData))
+		if err != nil {
+			fmt.Printf("[ERROR] Failed to post spike data: %v\n", err)
+			continue
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			fmt.Printf("[ERROR] API returned non-200 status: %d\n", resp.StatusCode)
+		}
+		resp.Body.Close()
+	}
+}
+
+// queueSpikeUpdate adds a spike update to the processing queue
+func queueSpikeUpdate(m *ArticleMetrics) {
+	select {
+	case spikeQueue <- m:
+		// Successfully queued
+	default:
+		// Queue is full, log error but don't block
+		fmt.Printf("[ERROR] Spike queue is full, dropping update for article '%s'\n", m.Title)
+	}
 }
 
 func UpdateArticleActivity(edit StoredEdit) {
@@ -99,32 +148,8 @@ func UpdateArticleActivity(edit StoredEdit) {
 }
 
 func postSpikeToAPI(m *ArticleMetrics) {
-	payload := SpikePayload{
-		Title:        m.Title,
-		StartTime:    m.StartTime,
-		LastEditTime: m.LastEdit,
-		TotalEdits:   m.Edits,
-		TotalBytes:   m.Bytes,
-		IsActive:     m.InSpike,
-	}
-
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		fmt.Printf("[ERROR] Failed to marshal spike data: %v\n", err)
-		return
-	}
-
-	resp, err := http.Post(SPIKE_API_ENDPOINT, "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		fmt.Printf("[ERROR] Failed to post spike data: %v\n", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("[ERROR] API returned non-200 status: %d\n", resp.StatusCode)
-		return
-	}
+	// Instead of making the HTTP request directly, queue it
+	queueSpikeUpdate(m)
 }
 
 // CheckInactivity should be called periodically (e.g. once per minute).
