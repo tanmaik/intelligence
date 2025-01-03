@@ -22,3 +22,15 @@ model MediaWikiRecentChange {
   lengthNew Int?
   serverUrl String?  @db.Text
 }
+
+model ArticleSpike {
+  id           Int      @id @default(autoincrement())
+  title        String   @db.Text
+  startTime    DateTime @default(now())
+  lastEditTime DateTime @default(now())
+  totalEdits   Int      @default(0)
+  totalBytes   Int      @default(0)
+  isActive     Boolean  @default(true)
+  firstEditId  Int? // Reference to the first edit that triggered the spike
+  lastEditId   Int? // Reference to the most recent edit in the spike
+}
