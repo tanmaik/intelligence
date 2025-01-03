@@ -51,39 +51,62 @@ function SpikesList() {
     return () => clearInterval(interval);
   }, []);
 
-  return (
-    <div className="mt-4">
-      <p className="font-medium">recent stories</p>
+  const activeSpikes = spikes.filter((spike) => spike.isActive);
+  const inactiveSpikes = spikes.filter((spike) => !spike.isActive);
 
-      <div className="mt-2">
-        {spikes.length === 0 ? (
-          <p className="text-gray-500">No recent activity spikes found</p>
-        ) : (
-          <div className="space-y-1">
-            {spikes.map((spike) => (
-              <div key={`${spike.title}-${spike.startTime}`}>
-                <a
-                  href={`https://en.wikipedia.org/wiki/${encodeURIComponent(
-                    spike.title
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
-                  {spike.title}
-                </a>
-                {spike.isActive && (
-                  <span className="ml-2 text-green-600">•</span>
-                )}
-                <span className="ml-2 text-gray-500">
-                  {spike.totalEdits} edits, {spike.totalBytes.toLocaleString()}{" "}
-                  bytes
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+  const SpikeItem = ({ spike }: { spike: Spike }) => (
+    <div key={`${spike.title}-${spike.startTime}`}>
+      <a
+        href={`https://en.wikipedia.org/wiki/${encodeURIComponent(
+          spike.title
+        )}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:underline"
+      >
+        {spike.title}
+      </a>
+      <span className="ml-2 text-gray-500">
+        {spike.totalEdits} edits, {spike.totalBytes.toLocaleString()} bytes
+      </span>
+    </div>
+  );
+
+  return (
+    <div className="mt-4 space-y-6">
+      <div>
+        <p className="font-medium">recent stories</p>
+        <div className="mt-2">
+          {activeSpikes.length === 0 ? (
+            <p className="text-gray-500">No active spikes found</p>
+          ) : (
+            <div className="space-y-1">
+              {activeSpikes.map((spike) => (
+                <SpikeItem
+                  key={`${spike.title}-${spike.startTime}`}
+                  spike={spike}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {inactiveSpikes.length > 0 && (
+        <div>
+          <p className="font-medium">old news</p>
+          <div className="mt-2">
+            <div className="space-y-1">
+              {inactiveSpikes.map((spike) => (
+                <SpikeItem
+                  key={`${spike.title}-${spike.startTime}`}
+                  spike={spike}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
