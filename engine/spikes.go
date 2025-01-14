@@ -48,7 +48,7 @@ var SPIKE_API_ENDPOINT string
 func init() {
 	allArticleMetrics = make(map[string]*ArticleMetrics)
 	// Initialize the spike queue with a reasonable buffer size
-	spikeQueue = make(chan *ArticleMetrics, 1000)
+	spikeQueue = make(chan *ArticleMetrics, 1000000)
 	// Start the background worker
 	go processSpikeQueue()
 
