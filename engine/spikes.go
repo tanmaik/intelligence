@@ -1,5 +1,3 @@
-// File: /Users/tanmai/Documents/perceptron/pulse/engine/spikes.go
-
 package engine
 
 import (
@@ -7,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -43,8 +42,9 @@ const (
 	WEIGHT_BYTES               = 0.2              // Lower weight for bytes in the weighted score
 	WEIGHT_EDITS               = 0.8              // Higher weight for edit count in the weighted score
 	EDIT_COUNT_POINTS_PER_EDIT = 500             // Pseudo "points" for each edit
-	SPIKE_API_ENDPOINT         = "http://localhost:8080/edits/spikes" // Update this with your actual endpoint
 )
+
+var SPIKE_API_ENDPOINT string
 
 func init() {
 	allArticleMetrics = make(map[string]*ArticleMetrics)
@@ -52,6 +52,13 @@ func init() {
 	spikeQueue = make(chan *ArticleMetrics, 1000)
 	// Start the background worker
 	go processSpikeQueue()
+
+	// Set the SPIKE_API_ENDPOINT based on the API_BASE_URL environment variable
+	baseURL := os.Getenv("API_BASE_URL")
+	if baseURL == "" {
+		baseURL = "http://localhost:8080"
+	}
+	SPIKE_API_ENDPOINT = baseURL + "/wiki/edits/spikes"
 }
 
 // processSpikeQueue runs in the background and processes queued spike updates

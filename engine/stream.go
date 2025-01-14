@@ -26,7 +26,7 @@ func fetchHistoricalEdits() ([]StoredEdit, error) {
 		baseURL = "http://localhost:8080"
 	}
 
-	resp, err := http.Get(baseURL + "/edits")
+	resp, err := http.Get(baseURL + "/wiki/edits")
 	if err != nil {
 		return nil, fmt.Errorf("localhost request failed: %v", err)
 	}
@@ -39,6 +39,7 @@ func fetchHistoricalEdits() ([]StoredEdit, error) {
 
 	var edits []StoredEdit
 	if err := json.Unmarshal(body, &edits); err != nil {
+		log.Printf("Error parsing JSON: %v\nResponse Body: %s", err, string(body))
 		return nil, fmt.Errorf("error parsing JSON: %v", err)
 	}
 
