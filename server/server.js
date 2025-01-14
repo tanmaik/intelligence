@@ -1,5 +1,5 @@
-import app from "./index";
-import { prisma } from "./db/client";
+import app from "./index.js";
+import { prisma } from "./db/client.js";
 
 const port = parseInt(process.env.PORT || "8080");
 

@@ -6,7 +6,7 @@ dotenv.config();
 const RETRY_DELAY = 5000;
 const BASE_URL = process.env.API_BASE_URL || "http://localhost:8080";
 
-async function postEdit(data: any) {
+async function postEdit(data) {
   const response = await fetch(`${BASE_URL}/wiki/edits`, {
     method: "POST",
     headers: {
@@ -32,22 +32,18 @@ async function postEdit(data: any) {
   return response.json();
 }
 
-async function connectToEventStream(
-  url: string,
-  attemptCount = 1,
-  duration?: number
-): Promise<EventSource> {
+async function connectToEventStream(url, attemptCount = 1, duration) {
   try {
     console.log(
       `Connecting to the EventStreams feed (attempt ${attemptCount})...`
     );
     const eventSource = new EventSource(url);
 
-    eventSource.onmessage = async (event: MessageEvent) => {
+    eventSource.onmessage = async (event) => {
       let retryCount = 1;
       while (true) {
         try {
-          const data: any = JSON.parse(event.data);
+          const data = JSON.parse(event.data);
           if (
             data.server_name === "en.wikipedia.org" &&
             data.type === "edit" &&
@@ -70,7 +66,7 @@ async function connectToEventStream(
       }
     };
 
-    eventSource.onerror = async (error: Event) => {
+    eventSource.onerror = async (error) => {
       console.error("EventSource failed:", error);
       eventSource.close();
 
@@ -97,7 +93,7 @@ async function connectToEventStream(
   }
 }
 
-export async function main(duration?: number): Promise<void> {
+export async function main(duration) {
   const url = "https://stream.wikimedia.org/v2/stream/recentchange";
   const eventSource = await connectToEventStream(url, 1, duration);
 

@@ -3,7 +3,7 @@ import { prisma } from "../db/client.js";
 
 const wiki = express.Router();
 
-const handleError = (error: any, res: express.Response) => {
+const handleError = (error, res) => {
   console.log(`${error.stack || error.message}`);
   res.status(500).json({ error: "Internal server error" });
 };
