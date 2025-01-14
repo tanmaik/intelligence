@@ -1,25 +1,24 @@
 import express from "express";
 import { prisma } from "../db/client.js";
 
-const edits = express.Router();
+const wiki = express.Router();
 
 const handleError = (error: any, res: express.Response) => {
-  console.log(`[Error] ${error.stack || error.message}`);
+  console.log(`${error.stack || error.message}`);
   res.status(500).json({ error: "Internal server error" });
 };
 
-edits.get("/", async (req, res) => {
+wiki.get("/edits", async (req, res) => {
   try {
-    console.log("[Edits] Fetching all edits");
-    const edits = await prisma.mediaWikiRecentChange.findMany();
-    console.log(`[Edits] Found ${edits.length} edits`);
+    const edits = await prisma.wikiEdit.findMany();
+    console.log(`Found ${edits.length} edits`);
     res.json(edits);
   } catch (error) {
     handleError(error, res);
   }
 });
 
-edits.post("/spikes", async (req, res) => {
+wiki.post("/edits/spikes", async (req, res) => {
   try {
     const {
       title,
@@ -75,7 +74,7 @@ edits.post("/spikes", async (req, res) => {
   }
 });
 
-edits.get("/spikes/active", async (req, res) => {
+wiki.get("/edits/spikes/active", async (req, res) => {
   try {
     console.log("Fetching active spikes");
     const spikes = await prisma.wikiEditSpike.findMany({
@@ -94,13 +93,13 @@ edits.get("/spikes/active", async (req, res) => {
   }
 });
 
-edits.get("/spikes/recent", async (req, res) => {
+wiki.get("/edits/spikes/recent", async (req, res) => {
   try {
     console.log("Fetching recent spikes");
     const spikes = await prisma.wikiEditSpike.findMany({
       where: {
         lastEditTime: {
-          gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24 hours
+          gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
         },
       },
       orderBy: {
@@ -115,4 +114,40 @@ edits.get("/spikes/recent", async (req, res) => {
   }
 });
 
-export { edits };
+wiki.post("/edits", async (req, res) => {
+  try {
+    const {
+      title,
+      title_url,
+      comment,
+      user,
+      bot,
+      notify_url,
+      minor,
+      length_old,
+      length_new,
+      server_url,
+    } = req.body;
+
+    const edit = await prisma.wikiEdit.create({
+      data: {
+        title,
+        titleUrl: title_url,
+        comment,
+        user,
+        bot,
+        notifyUrl: notify_url,
+        minor,
+        lengthOld: length_old,
+        lengthNew: length_new,
+        serverUrl: server_url,
+      },
+    });
+    console.log(`Created edit for article '${title}'`);
+    res.json(edit);
+  } catch (error) {
+    handleError(error, res);
+  }
+});
+
+export { wiki };

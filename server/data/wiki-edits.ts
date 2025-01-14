@@ -1,8 +1,36 @@
 import { EventSource } from "eventsource";
-import { PrismaClient } from "@prisma/client";
+import dotenv from "dotenv";
 
-const prisma = new PrismaClient();
+dotenv.config();
+
 const RETRY_DELAY = 5000;
+const BASE_URL = process.env.API_BASE_URL || "http://localhost:8080";
+
+async function postEdit(data: any) {
+  const response = await fetch(`${BASE_URL}/wiki/edits`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: data.title,
+      title_url: data.title_url,
+      comment: data.comment,
+      user: data.user,
+      bot: data.bot,
+      notify_url: data.notify_url,
+      minor: data.minor,
+      length_old: data.length?.old,
+      length_new: data.length?.new,
+      server_url: data.server_url,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to post edit: ${response.statusText}`);
+  }
+  return response.json();
+}
 
 async function connectToEventStream(
   url: string,
@@ -26,21 +54,7 @@ async function connectToEventStream(
             data.title &&
             !data.title.includes(":")
           ) {
-            // Save the edit to the database
-            await prisma.mediaWikiRecentChange.create({
-              data: {
-                title: data.title,
-                titleUrl: data.title_url,
-                comment: data.comment,
-                user: data.user,
-                bot: data.bot,
-                notifyUrl: data.notify_url,
-                minor: data.minor,
-                lengthOld: data.length?.old,
-                lengthNew: data.length?.new,
-                serverUrl: data.server_url,
-              },
-            });
+            await postEdit(data);
             console.log(`edit: ${data.title}`);
             break;
           }

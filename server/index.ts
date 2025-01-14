@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { edits } from "./routes/edits.js";
+import { wiki } from "./routes/wiki";
 
 const app = express();
 
@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
   res.send("pulse");
 });
 
-app.use("/edits", edits);
+app.use("/wiki", wiki);
 
 app.use((req, res) => {
   console.log(`Route not found: ${req.method} ${req.path}`);
