@@ -1,6 +1,6 @@
 [build]
 builder = "dockerfile"
-dockerfilePath = "Dockerfile.worker"
+dockerfilePath = "data/Dockerfile.worker"
 
 [deploy]
 startCommand = "poetry run python workers/wiki-edits.py"
