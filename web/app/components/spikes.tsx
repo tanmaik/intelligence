@@ -52,7 +52,6 @@ export default function ActiveSpikes() {
       if (!res.ok) throw new Error("Failed to fetch spikes");
       const data: WikiEditSpike[] = await res.json();
 
-      // Fetch closest edits for each spike
       const spikesWithEdits = await Promise.all(data.map(fetchClosestEdits));
       setSpikes(spikesWithEdits);
     } catch (error) {
