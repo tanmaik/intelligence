@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "ai"
+name = "data"
 version = "0.1.0"
 description = ""
 authors = ["Tanmai Kalisipudi <tanmai.kalisipudi@gmail.com>"]
@@ -8,6 +8,10 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.13"
+requests = "^2.32.3"
+newspaper3k = "^0.2.8"
+sseclient = "^0.0.27"
+python-dotenv = "^1.0.1"
 
 
 [build-system]
