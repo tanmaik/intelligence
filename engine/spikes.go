@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-// ArticleMetrics holds dynamic metrics we use for spike detection.
 type ArticleMetrics struct {
 	Title     string
 	Edits     int       // number of edits so far (recent window)
@@ -38,7 +37,7 @@ var spikeQueue chan *ArticleMetrics
 // Example weighting/threshold constants:
 const (
 	SPIKE_WEIGHTED_THRESHOLD    = 5000            // Combined threshold for weighted score
-	SPIKE_INACTIVITY_DURATION  = 30 * time.Minute // Only end spike after no edits for 10 minutes
+	SPIKE_INACTIVITY_DURATION  = 10 * time.Minute // Only end spike after no edits for 10 minutes
 	WEIGHT_BYTES               = 0.2              // Lower weight for bytes in the weighted score
 	WEIGHT_EDITS               = 0.8              // Higher weight for edit count in the weighted score
 	EDIT_COUNT_POINTS_PER_EDIT = 500             // Pseudo "points" for each edit

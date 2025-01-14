@@ -173,7 +173,6 @@ func StartIngestion() {
 			log.Printf("Error with stream: %v", err)
 		}
 
-		// Check if the stream has been inactive for more than 2 seconds
 		if time.Since(lastEventTime) > 2*time.Second {
 			log.Println("Stream inactive for more than 2 seconds, reconnecting...")
 			time.Sleep(2 * time.Second)
