@@ -1,3 +1,3 @@
 <h1 align="center" style="border-bottom: none">
-          CITIZEN
+          pulse
 </h1>

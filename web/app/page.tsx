@@ -120,9 +120,11 @@ function SpikesList() {
 
 export default function Home() {
   return (
-    <div className="p-2">
-      <h1 className="font-bold">pulse</h1>
-      <SpikesList />
+    <div className="flex justify-center py-10">
+      <div className="max-w-xl text-center">
+        <h1 className="font-bold text-xl">citizen</h1>
+        <SpikesList />
+      </div>
     </div>
   );
 }
