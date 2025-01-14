@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model MediaWikiRecentChange {
+model WikiEdit {
   id        Int      @id @default(autoincrement())
   title     String?  @db.Text
   titleUrl  String?  @db.Text
@@ -23,7 +23,7 @@ model MediaWikiRecentChange {
   serverUrl String?  @db.Text
 }
 
-model MediaWikiRecentChangeSpike {
+model WikiEditSpike {
   id           Int      @id @default(autoincrement())
   title        String   @db.Text
   startTime    DateTime
