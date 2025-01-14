@@ -18,6 +18,50 @@ wiki.get("/edits", async (req, res) => {
   }
 });
 
+wiki.post("/edits/closest", async (req, res) => {
+  const { title, startTime, endTime } = req.body;
+
+  if (!title) {
+    return res.status(400).json({ error: "Title is required" });
+  }
+
+  try {
+    let startEdit = null;
+    let endEdit = null;
+
+    if (startTime) {
+      const startResult = await prisma.$queryRaw`
+        SELECT id, title, notifyUrl, timestamp
+        FROM WikiEdit
+        WHERE title = ${title}
+        ORDER BY ABS(TIMESTAMPDIFF(SECOND, timestamp, ${new Date(
+          startTime
+        )})) ASC
+        LIMIT 1
+      `;
+      startEdit = startResult[0];
+    }
+
+    if (endTime) {
+      const endResult = await prisma.$queryRaw`
+        SELECT id, title, notifyUrl, timestamp
+        FROM WikiEdit
+        WHERE title = ${title}
+        ORDER BY ABS(TIMESTAMPDIFF(SECOND, timestamp, ${new Date(endTime)})) ASC
+        LIMIT 1
+      `;
+      endEdit = endResult[0];
+    }
+
+    res.json({
+      startEdit,
+      endEdit,
+    });
+  } catch (error) {
+    handleError(error, res);
+  }
+});
+
 wiki.post("/edits/spikes", async (req, res) => {
   try {
     const {
@@ -86,8 +130,38 @@ wiki.get("/edits/spikes/active", async (req, res) => {
       },
       take: 10,
     });
-    console.log(`Found ${spikes.length} active spikes`);
-    res.json(spikes);
+
+    // Find closest edits for each spike
+    const spikesWithEdits = await Promise.all(
+      spikes.map(async (spike) => {
+        const startResult = await prisma.$queryRaw`
+          SELECT id, title, notifyUrl, timestamp
+          FROM WikiEdit
+          WHERE title = ${spike.title}
+          ORDER BY ABS(TIMESTAMPDIFF(SECOND, timestamp, ${spike.startTime})) ASC
+          LIMIT 1
+        `;
+
+        const endResult = await prisma.$queryRaw`
+          SELECT id, title, notifyUrl, timestamp
+          FROM WikiEdit
+          WHERE title = ${spike.title}
+          ORDER BY ABS(TIMESTAMPDIFF(SECOND, timestamp, ${spike.lastEditTime})) ASC
+          LIMIT 1
+        `;
+
+        return {
+          ...spike,
+          startEdit: startResult[0] || null,
+          endEdit: endResult[0] || null,
+        };
+      })
+    );
+
+    console.log(
+      `Found ${spikes.length} active spikes with their closest edits`
+    );
+    res.json(spikesWithEdits);
   } catch (error) {
     handleError(error, res);
   }
