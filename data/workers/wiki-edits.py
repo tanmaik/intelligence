@@ -53,7 +53,7 @@ def connect_to_event_stream(url, attempt_count=1, duration=None):
                         data.get("title") and
                         ":" not in data.get("title")
                     ):
-                        post_edit(data)
+                        # post_edit(data)
                         print(f"edit: {data.get('title')}")
                 except Exception as inner_error:
                     print(f"Error processing edit (retrying): {inner_error}")
