@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 RETRY_DELAY = 5  # in seconds
-BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
+BASE_URL = os.getenv("API_BASE_URL", "https://pulse-production-58ab.up.railway.app/")
 
 def post_edit(data):
     """
@@ -73,6 +73,7 @@ def main(duration=None):
     """
     Main entry point for the script.
     """
+    print(BASE_URL)
     url = "https://stream.wikimedia.org/v2/stream/recentchange"
     connect_to_event_stream(url, attempt_count=1, duration=duration)
 
