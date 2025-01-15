@@ -4,5 +4,3 @@ dockerfilePath = "data/workers/Dockerfile.worker"
 
 [deploy]
 startCommand = "poetry run python workers/wiki-edits.py"
-healthcheckPath = "/"
-restartPolicyType = "on_failure" 
