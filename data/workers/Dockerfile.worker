@@ -14,11 +14,8 @@ RUN curl -sSL https://install.python-poetry.org | python3 - \
 # Set working directory
 WORKDIR /app
 
-# Copy poetry files
-COPY poetry.lock pyproject.toml ./
-
-# Copy source code
-COPY workers/ ./workers/
+# Copy all files from data directory
+COPY .. .
 
 # Install dependencies
 RUN poetry config virtualenvs.create false \
